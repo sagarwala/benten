@@ -119,7 +119,6 @@ public class GitHttpHelper{
 	    return getLabelsByIssueUri;
 	}
 	
-	//POST /repos/:owner/:repo/issues/:number/assignees
     public static URI addIssueAssigneeUri(String org, String repo, Integer issueNum) throws URISyntaxException {
         URI addIssueAssigneeUri = buildURI(getBaseUri()+"repos/"+org+"/" + repo + "/issues/"+issueNum.intValue()+"/assignees",null);
         return addIssueAssigneeUri;
@@ -129,31 +128,6 @@ public class GitHttpHelper{
         URI getIssueDetailsuri = buildURI(getBaseUri()+"repos/"+org+"/" + repo + "/issues"+"/"+issueNum.intValue(),null);
         return getIssueDetailsuri;
     }
-
-
-	public static URI jiraIssueUri(String issueKey) throws URISyntaxException {
-		        Map<String, String> queryParams = new HashMap();
-		        URI searchUri = buildURI("https://jira.intuit.com/rest/api/2/issue/"+issueKey, queryParams);
-		        return searchUri;
-	}
-
-	public static URI jiraIssueDetailsUri(String jiraTicketId, String expandFields) throws URISyntaxException {
-		Map<String, String> queryParams = new HashMap();
-
-        if (expandFields != null) {
-            queryParams.put("expand", expandFields);
-        }
-
-        URI searchUri = buildURI("https://jira.intuit.com/rest/api/2/issue/"+jiraTicketId, queryParams);
-        return searchUri;
-	}
-
-	public static URI myissuesUri(String user) throws URISyntaxException {
-		Map<String, String> queryParams = new HashMap();
-		queryParams.put("q", "is:open is:issue assignee:" +user +"archived:false");
-        URI searchUri = buildURI(getBaseUri() + "search/issues", queryParams);
-        return searchUri;
-	}
 
 
 }
