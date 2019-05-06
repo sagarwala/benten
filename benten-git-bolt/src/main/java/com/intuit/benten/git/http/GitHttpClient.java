@@ -116,28 +116,6 @@ public class GitHttpClient extends BentenGitHttpClient {
         }
     }
 
-
-    public String createIssue(JSONObject jsonObject, String org, String repo){
-    	
-    		try {
-    			 HttpPost httpPost = new HttpPost(GitHttpHelper.createIssueUri(org, repo));
-    			 StringEntity stringEntity = formPayload(jsonObject);
-    			 stringEntity.setContentType("application/json");
-    			 httpPost.setEntity(stringEntity);
-    			 HttpResponse httpResponse = request(httpPost);
-    	         if(httpResponse.getStatusLine().getStatusCode()!=201){
-    	            		handleGitException(httpResponse);
-    	         }
-    	         String json = EntityUtils.toString(httpResponse.getEntity());
-    	         JSONObject issuesJson = GitConverter.objectMapper.readValue(json,JSONObject.class);
-    	         logger.info("**********============**************");
-    	         logger.info(issuesJson.getString("html_url"));
-    	         return issuesJson.getString("html_url");
-    		}catch(Exception ex){
-                throw new RuntimeException(ex);
-        }
-    }
-
     private StringEntity formPayload(JSONObject jsonObject) throws JsonProcessingException {
         String payload;
         StringEntity stringEntity;
@@ -171,10 +149,7 @@ public class GitHttpClient extends BentenGitHttpClient {
 			}
 			String json = EntityUtils
                 .toString(httpResponse.getEntity());
-			logger.info("************ " + json);
-			//JSONObject jsonObject =GitConverter.objectMapper.readValue(json, JSONObject.class);
 			events = GitConverter.objectMapper.readValue(json, new TypeReference<List<Event>>(){});
-			logger.info("**** " + events.size());
 		}catch (Exception ex) {
 			logger.error(ex.getMessage(),ex);
 			throw new RuntimeException(ex);
@@ -190,7 +165,6 @@ public class GitHttpClient extends BentenGitHttpClient {
 			 stringEntity.setContentType("application/json");
 			 httpPost.setEntity(stringEntity);
 			 HttpResponse httpResponse = request(httpPost);
-			 logger.info("****************** " + httpResponse.getStatusLine().getReasonPhrase());
 	         if(httpResponse.getStatusLine().getStatusCode()!=200){
 	            		handleGitException(httpResponse);
 	         }
@@ -208,7 +182,6 @@ public class GitHttpClient extends BentenGitHttpClient {
 		try {
 			 JsonParser jsonParser = new JsonParser();
 			 HttpPut httpPut = new HttpPut(GitHttpHelper.addLabelsToIssueUri(org, repo, issueNum));
-			 //JsonArray stringEntity = jsonParser.parse(labelsArray).getAsJsonArray();
 			 StringEntity stringEntity = new StringEntity(labelsArray.toString());
 			 stringEntity.setContentType("application/json");
 			 httpPut.setEntity(stringEntity);
@@ -235,7 +208,6 @@ public class GitHttpClient extends BentenGitHttpClient {
 			}
 			String json = EntityUtils
                 .toString(httpResponse.getEntity());
-			//JSONObject jsonObject =GitConverter.objectMapper.readValue(json, JSONObject.class);
 			labels = GitConverter.objectMapper.readValue(json, new TypeReference<List<Label>>(){});
 			
 		}catch (Exception ex) {
@@ -245,95 +217,8 @@ public class GitHttpClient extends BentenGitHttpClient {
         return labels;
 	}
 	
-	   public Issue getIssueDetails(String org, String repo, Integer issueNum) {
-	        Issue issue;
-	        try {
-	            HttpGet httpGet= new HttpGet(GitHttpHelper.getIssueDetailsUri(org, repo, issueNum));
 
-	            HttpResponse httpResponse = request(httpGet);
-	            if (httpResponse.getStatusLine().getStatusCode() != 200) {
-	                handleGitException(httpResponse);
-	            }
-	            String json = EntityUtils.toString(httpResponse.getEntity());
-	            logger.info(json);
-	            issue = GitConverter.objectMapper.readValue(json, Issue.class);
-	            logger.info("**********============**************");
-	            logger.info(issue.getHtml_url());
-//	            return issuesJson.getString("html_url");
-//	            issue = GitConverter.convertJsonObjectToIssue(issuesJson);
 
-	        } catch (Exception ex) {
-	        		logger.error(ex.getMessage());
-	            throw new RuntimeException(ex);
-	        }
-	        return issue;
-	    }
-
-	    public String addIssueAssignee(JSONObject jsonObject, String org, String repo, Integer issueNum){
-
-	        try {
-	            HttpPost httpPost = new HttpPost(GitHttpHelper.addIssueAssigneeUri(org, repo, issueNum));
-	            StringEntity stringEntity = formPayload(jsonObject);
-	            stringEntity.setContentType("application/json");
-	            httpPost.setEntity(stringEntity);
-	            HttpResponse httpResponse = request(httpPost);
-	            logger.info("****" + httpResponse.getStatusLine().getReasonPhrase());
-	            if(httpResponse.getStatusLine().getStatusCode()!=201){
-	                handleGitException(httpResponse);
-	            }
-	            String json = EntityUtils.toString(httpResponse.getEntity());
-	            logger.info("************");
-	            logger.info(json);
-	            JSONObject issuesJson = GitConverter.objectMapper.readValue(json,JSONObject.class);
-	            
-	            return issuesJson.getString("html_url");
-	        }catch(Exception ex){
-	            throw new RuntimeException(ex);
-	        }
-	    }
-
-		public JiraIssue getJiraIssueDetails(String jiraTicketId, String expandedFields) {
-			JiraIssue issue;
-	        try {
-	            HttpGet httpGet = new HttpGet(GitHttpHelper.jiraIssueDetailsUri(jiraTicketId, expandedFields));
-	            logger.info("uri " + GitHttpHelper.jiraIssueDetailsUri(jiraTicketId, expandedFields).toString());
-	            HttpResponse httpResponse = jiraRequest(httpGet);
-	            if(httpResponse.getStatusLine().getStatusCode()!=200){
-	                handleGitException(httpResponse);
-	            }
-	            String json = EntityUtils.toString(httpResponse.getEntity());
-	            logger.info("**********");
-	            logger.info(json);
-	            JSONObject issuesJson = GitConverter.jiraObjectMapper.readValue(json,JSONObject.class);
-	            issue =GitConverter.convertJsonObjectToIssue(issuesJson);
-	        }catch (Exception ex) {
-	            throw new RuntimeException(ex);
-	        }
-	        return issue;
-		}
-
-		public List<Issue> myIssues(String user) {
-            try {
-                logger.info("**********============**************" + user);
-                logger.info("uri " + GitHttpHelper.myissuesUri(user).toString());
-                HttpGet httpGet = new HttpGet(new URI("https://github.intuit.com/api/v3/search/issues?q=is%3Aopen%20is%3Aissue%20assignee%3A"+user+"%20archived%3Afalse"));
-                
-                HttpResponse httpResponse = request(httpGet);
-                if(httpResponse.getStatusLine().getStatusCode()!=200){
-                           handleGitException(httpResponse);
-                }
-                logger.info(httpResponse.getEntity().toString());
-                String json = EntityUtils.toString(httpResponse.getEntity());
-                logger.info(json);
-                JSONObject issuesJson = GitConverter.objectMapper.readValue(json,JSONObject.class);
-                List<Issue> issueList = GitConverter.objectMapper.readValue(issuesJson.getString("items"), new TypeReference<List<Issue>>(){});
-                logger.info("**********============**************");
-                logger.info(issueList.size() + "");
-                return issueList;
-           }catch(Exception ex){
-               throw new RuntimeException(ex);
-       }
-		}
 
 
 }
